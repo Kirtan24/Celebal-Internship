@@ -1,25 +1,34 @@
-This pipeline is for a **CI/CD workflow** that builds a Docker image for a 2048 web game, pushes it to Azure Container Registry (ACR), and deploys it to Azure Container Instance (ACI).
-
-````md
 # 🚀 Azure DevOps CI/CD Pipeline: Build & Deploy to Azure Container Instance (ACI)
 
-This document describes a complete **multi-stage Azure DevOps pipeline** that performs the following:
+This document describes a complete **multi-stage Azure DevOps pipeline** that:
 
-- Builds a Docker image from source code (2048 web game)
-- Pushes the image to Azure Container Registry (ACR)
-- Deploys the container to Azure Container Instance (ACI)
-- Retrieves the public IP address after deployment
+- 🐳 Builds a Docker image for the **2048 web game**
+- 📦 Pushes the image to **Azure Container Registry (ACR)**
+- ☁️ Deploys the image to **Azure Container Instance (ACI)**
+- 🌐 Retrieves the **public IP address** after deployment
 
 ---
 
-## 🔄 Trigger
+## 🏗️ Architecture Overview  
+
+> The pipeline automates building, storing, and deploying the 2048 web game container image.  
+
+<img width="1801" height="995" alt="image" src="https://github.com/user-attachments/assets/f5622502-bd39-452c-aa7e-5b70e93838c3" />
+
+The flow looks like this:  
+
+**Source Code → Azure DevOps Pipeline → Build & Push to ACR → Deploy on ACI → Public Access**
+
+---
+
+## 🔄 Pipeline Trigger
 
 ```yaml
 trigger:
   - main
-````
+```
 
-> The pipeline runs automatically on every push to the `main` branch.
+✅ The pipeline runs automatically on every push to the `main` branch.
 
 ---
 
@@ -39,9 +48,11 @@ variables:
   location: centralindia
 ```
 
+These variables define the **ACR name, image details, resource group, container instance, and deployment region**.
+
 ---
 
-## 🛠️ Build Stage: Build & Push Docker Image to ACR
+## 🛠️ Stage 1: Build & Push Docker Image to ACR
 
 ```yaml
 stages:
@@ -68,11 +79,16 @@ stages:
               docker push $(acrLoginServer)/$(imageName):$(imageTag)
 ```
 
-> This stage builds a Docker image for the `2048-game` directory and pushes it to the Azure Container Registry with a unique tag based on the build ID.
+👉 **What happens here?**
+1. **Login to ACR** – The pipeline authenticates with Azure Container Registry.  
+2. **Build Docker Image** – A new Docker image for the 2048 web game is created.  
+3. **Push Image to ACR** – The image is tagged with a unique build ID and stored in ACR.  
+
+Result → The image is now available in ACR for deployment.  
 
 ---
 
-## 🚀 Deploy Stage: Deploy Image to Azure Container Instance (ACI)
+## 🚀 Stage 2: Deploy to Azure Container Instance (ACI)
 
 ```yaml
 - stage: Deploy
@@ -129,11 +145,44 @@ stages:
                 -o tsv
 ```
 
-> This stage fetches ACR credentials, deletes the existing container (if any), then creates a new ACI instance using the latest pushed image, and finally outputs the public IP address of the deployed container.
+👉 **What happens here?**
+1. **Fetch ACR Credentials** – Required for ACI to pull the image.  
+2. **Delete Old Container (if any)** – Ensures a clean environment.  
+3. **Deploy New Container** – Creates a new Azure Container Instance with the latest Docker image.  
+4. **Expose Public IP** – The game becomes available on the internet (Port 80).  
+
+Result → The latest version of the game is deployed and accessible.  
 
 ---
 
 ## ✅ Final Output
 
-* The ACI instance will host the Dockerized 2048 game and expose it on **port 80**.
-* You can access it using the public IP address printed at the end of the deployment stage.
+- The **ACI instance** hosts the **Dockerized 2048 game**  
+- Available on **port 80**  
+- Access using the **public IP address** printed at the end of the pipeline 🎉  
+
+---
+
+## 🔍 How the Pipeline Works (Stage-by-Stage Summary)
+
+1. **Code Commit (Trigger)**  
+   - Any push to the `main` branch triggers the pipeline.  
+
+2. **Build Stage**  
+   - Logs in to ACR  
+   - Builds Docker image for the 2048 game  
+   - Pushes image to ACR with a unique tag  
+
+3. **Deploy Stage**  
+   - Fetches ACR credentials  
+   - Deletes old container instance (if running)  
+   - Deploys the **new image** on Azure Container Instance (ACI)  
+   - Retrieves the **public IP address**  
+
+4. **User Access**  
+   - Developers/users can open the public IP in a browser and play the **2048 game** 🎮  
+
+---
+
+✨ In short:  
+**Every commit → Triggers pipeline → Builds image → Pushes to ACR → Deploys to ACI → Instantly available via public IP.**
